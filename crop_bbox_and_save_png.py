@@ -83,91 +83,92 @@ def crop_mas_and_create_pil(npy_img, slice, x, y, width, height):
     return pil_mass
 
 
-parser = argparse.ArgumentParser(description='Crop masses and save as png.')
-parser.add_argument('csv_box_file', help='csv file of bounding boxes (absolute path)')
-parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
-parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of Breast-Cancer-Screening-DBT)')
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Crop masses and save as png.')
+    parser.add_argument('csv_box_file', help='csv file of bounding boxes (absolute path)')
+    parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
+    parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of Breast-Cancer-Screening-DBT)')
+    args = parser.parse_args()
 
-csv_path = args.csv_box_file
-dest_dir = args.dest_dir
-path_to_imgs = args.path_to_imgs
-df_box = pd.read_csv(csv_path)
+    csv_path = args.csv_box_file
+    dest_dir = args.dest_dir
+    path_to_imgs = args.path_to_imgs
+    df_box = pd.read_csv(csv_path)
 
-mass_count = 0
-img_name_old = ''
+    mass_count = 0
+    img_name_old = ''
 
-for idx, row in tqdm(df_box.iterrows(), total=len(df_box.index)):
-    # extract info from the csv
-    label = row['Class']
-    patient_id = row['PatientID']
-    study_id = row['StudyUID']
-    view = row['View']
+    for idx, row in tqdm(df_box.iterrows(), total=len(df_box.index)):
+        # extract info from the csv
+        label = row['Class']
+        patient_id = row['PatientID']
+        study_id = row['StudyUID']
+        view = row['View']
 
-    slice = row['Slice']
-    x = row['X']
-    y = row['Y']
-    width = row['Width']
-    height = row['Height']
-    volume_slices = row['VolumeSlices']
-    
-    img_name = f'{patient_id}_{study_id}_{view}.dcm'
-    img_path = os.path.join(path_to_imgs, label, img_name)
+        slice = row['Slice']
+        x = row['X']
+        y = row['Y']
+        width = row['Width']
+        height = row['Height']
+        volume_slices = row['VolumeSlices']
+        
+        img_name = f'{patient_id}_{study_id}_{view}.dcm'
+        img_path = os.path.join(path_to_imgs, label, img_name)
 
-    # check if same patient dcm
-    if img_name == img_name_old:
-        mass_count += 1
-        # print(f'Same mass in row {idx}')
-    else:
-        mass_count = 0
+        # check if same patient dcm
+        if img_name == img_name_old:
+            mass_count += 1
+            # print(f'Same mass in row {idx}')
+        else:
+            mass_count = 0
 
-    img_name_old = img_name
+        img_name_old = img_name
 
-    # opening the dicom file and converting it ot numpy
-    dcm_img = pydicom.dcmread(img_path)
-    dcm_img = pydicom.dcmread(img_path)
-    npy_img = dcm_img.pixel_array
-    # some images have to be reoriented
-    view_laterality = view[0].upper()
-    image_laterality = _get_image_laterality(npy_img)
-    if not image_laterality == view_laterality:
-            npy_img = np.flip(npy_img, axis=(-1, -2))
+        # opening the dicom file and converting it ot numpy
+        dcm_img = pydicom.dcmread(img_path)
+        dcm_img = pydicom.dcmread(img_path)
+        npy_img = dcm_img.pixel_array
+        # some images have to be reoriented
+        view_laterality = view[0].upper()
+        image_laterality = _get_image_laterality(npy_img)
+        if not image_laterality == view_laterality:
+                npy_img = np.flip(npy_img, axis=(-1, -2))
 
-    # img_bbox = np.copy(npy_img)
-    # img_bbox = draw_box(image=img_bbox[slice, :, :], x=x, y=y, width=width, height=height, lw=10)
-    
+        # img_bbox = np.copy(npy_img)
+        # img_bbox = draw_box(image=img_bbox[slice, :, :], x=x, y=y, width=width, height=height, lw=10)
+        
 
-    # mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
-    # # plt.subplot(121)
-    # # plt.imshow(img_bbox, cmap='gray')
-    # # plt.subplot(122)
-    # # plt.imshow(mass_cropped, cmap='gray')
-    # # plt.show()
+        # mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
+        # # plt.subplot(121)
+        # # plt.imshow(img_bbox, cmap='gray')
+        # # plt.subplot(122)
+        # # plt.imshow(mass_cropped, cmap='gray')
+        # # plt.show()
 
-    # # riscalare le immagini crop a max e min del crop?
-    # mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
-    # mass_cropped =mass_cropped.astype(np.uint8)
+        # # riscalare le immagini crop a max e min del crop?
+        # mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
+        # mass_cropped =mass_cropped.astype(np.uint8)
 
-    # # create PIL image and save as png
-    # pil_mass = Image.fromarray(mass_cropped)
-    pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, width, height)
-    out_file_name = img_name.split(sep='.')[0]
-    out_file_name = f'{out_file_name}_mass{mass_count}.png'
+        # # create PIL image and save as png
+        # pil_mass = Image.fromarray(mass_cropped)
+        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, width, height)
+        out_file_name = img_name.split(sep='.')[0]
+        out_file_name = f'{out_file_name}_mass{mass_count}.png'
 
-    out_path = os.path.join(dest_dir, 'original', label, out_file_name)
+        out_path = os.path.join(dest_dir, 'original', label, out_file_name)
 
-    # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
-    pil_mass.save(out_path, 'PNG')
+        # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
+        pil_mass.save(out_path, 'PNG')
 
-    num_slices_each_side = 10
+        num_slices_each_side = 10
 
-    out_path_augm = os.path.join(dest_dir, 'augmented', label, out_file_name)
-    pil_mass.save(out_path_augm, 'PNG')
-    # decidere come selezionare gli indici di slice, supponiamo che siano tutti in una lista
-    selected_slices = []
-    for i, selected_slice in enumerate(selected_slices):
-        pil_mass_augm = pil_mass = crop_mas_and_create_pil(npy_img, selected_slice, x, y, width, height)
-        base_out_name = out_file_name.split(sep='.')[0]
-        out_file_name_augm = f'{base_out_name}_slice{i}.png'
-        pil_mass_augm.save(out_path_augm, 'PNG')
+        out_path_augm = os.path.join(dest_dir, 'augmented', label, out_file_name)
+        pil_mass.save(out_path_augm, 'PNG')
+        # decidere come selezionare gli indici di slice, supponiamo che siano tutti in una lista
+        selected_slices = []
+        for i, selected_slice in enumerate(selected_slices):
+            pil_mass_augm = pil_mass = crop_mas_and_create_pil(npy_img, selected_slice, x, y, width, height)
+            base_out_name = out_file_name.split(sep='.')[0]
+            out_file_name_augm = f'{base_out_name}_slice{i}.png'
+            pil_mass_augm.save(out_path_augm, 'PNG')
 
