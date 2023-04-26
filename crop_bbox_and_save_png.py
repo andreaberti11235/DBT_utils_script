@@ -78,9 +78,14 @@ def _get_image_laterality(pixel_array: np.ndarray) -> str:
 def crop_mas_and_create_pil(npy_img, slice, x, y, width, height):
     mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
     mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
-    mass_cropped =mass_cropped.astype(np.uint8)
+    mass_cropped = mass_cropped.astype(np.uint8)
     pil_mass = Image.fromarray(mass_cropped)
     return pil_mass
+
+def idx_square_box(idx, og_size, new_size):
+    center = idx + (og_size // 2) 
+    idx_new = center - (new_size // 2)
+    return idx_new
 
 
 if __name__ == "__main__":
@@ -150,11 +155,19 @@ if __name__ == "__main__":
 
         # # riscalare le immagini crop a max e min del crop?
         # mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
-        # mass_cropped =mass_cropped.astype(np.uint8)
+        # mass_cropped = mass_cropped.astype(np.uint8)
 
         # # create PIL image and save as png
         # pil_mass = Image.fromarray(mass_cropped)
-        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, width, height)
+
+        # Identify max dimention to create squared crops
+        max_dim = np.maximum(width, height)
+        if width >= height:
+            y = idx_square_box(y, height, max_dim)
+        else:
+            x = idx_square_box(x, width, max_dim)
+
+        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
         out_file_name = img_name.split(sep='.')[0]
         out_file_name = f'{out_file_name}_mass{mass_count}.png'
 
@@ -178,7 +191,7 @@ if __name__ == "__main__":
             selected_slices = selected_slices[selected_slices != slice]
 
         for i, selected_slice in enumerate(selected_slices):
-            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, width, height)
+            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
             pil_mass_augm.save(out_path_augm, 'PNG')
