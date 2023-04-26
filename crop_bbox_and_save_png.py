@@ -88,11 +88,14 @@ if __name__ == "__main__":
     parser.add_argument('csv_box_file', help='csv file of bounding boxes (absolute path)')
     parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
     parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of Breast-Cancer-Screening-DBT)')
+    parser.add_argument('-n', '--num_slices', type=int, default=3, help='Number (for each side) of additional slices next to the central slice qith lesion')
     args = parser.parse_args()
 
     csv_path = args.csv_box_file
     dest_dir = args.dest_dir
     path_to_imgs = args.path_to_imgs
+    num_slices_each_side = args.num_slices
+
     df_box = pd.read_csv(csv_path)
 
     mass_count = 0
@@ -160,14 +163,22 @@ if __name__ == "__main__":
         # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
         pil_mass.save(out_path, 'PNG')
 
-        num_slices_each_side = 10
-
         out_path_augm = os.path.join(dest_dir, 'augmented', label, out_file_name)
         pil_mass.save(out_path_augm, 'PNG')
-        # decidere come selezionare gli indici di slice, supponiamo che siano tutti in una lista
-        selected_slices = []
+        # volume_slices is the depth of the whole image, in the wiki-page it is stated that
+        # the mass can be considered to extend for 25% of the whole volume.
+        # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous
+        if volume_slices / 4 <= 4 * num_slices_each_side:
+            selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
+            selected_slices = selected_slices[selected_slices != slice]
+        else:
+            if slice - 2 * num_slices_each_side < 0:
+                raise Exception(f'Mass in {img_name} is to close to the border!')
+            selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
+            selected_slices = selected_slices[selected_slices != slice]
+
         for i, selected_slice in enumerate(selected_slices):
-            pil_mass_augm = pil_mass = crop_mas_and_create_pil(npy_img, selected_slice, x, y, width, height)
+            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, width, height)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
             pil_mass_augm.save(out_path_augm, 'PNG')
