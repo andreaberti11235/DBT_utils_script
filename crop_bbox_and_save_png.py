@@ -87,6 +87,27 @@ def idx_square_box(idx, og_size, new_size):
     idx_new = center - (new_size // 2)
     return idx_new
 
+def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
+    if label == 'cancer':
+        num_slices_each_side += 1
+    if volume_slices / 4 <= 4 * num_slices_each_side:
+        step = 1
+        start = max(0, slice - num_slices_each_side)
+        selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start   
+            # selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
+    else:
+        step = 2
+        start = max(0, slice - 2 * num_slices_each_side)
+        selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start    
+            # selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
+    dim = np.size(selected_slices)
+    selected_slices = selected_slices[selected_slices != slice]
+    if np.size(selected_slices) == dim:
+            # se la prima slice risulta essere negativa, allora partiamo da 0, se però la slice annotata non cade 
+            # tra quelle selezionate (e quindi rimaniamo con 1 slice in più), eliminiamo l'ultima slice
+            # si può fare meglio?
+        selected_slices = selected_slices[:-1]
+    return selected_slices
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crop masses and save as png.')
@@ -188,29 +209,8 @@ if __name__ == "__main__":
         pil_mass.save(out_path_augm, 'PNG')
         # volume_slices is the depth of the whole image, in the wiki-page it is stated that
         # the mass can be considered to extend for 25% of the whole volume.
-        # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous
-        if volume_slices / 4 <= 4 * num_slices_each_side:
-            step = 1
-            start = max(0, slice - num_slices_each_side)
-            selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start   
-            # selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
-            selected_slices = selected_slices[selected_slices != slice]
-            if np.size(selected_slices) < 6:
-                # se la prima slice risulta essere negativa, allora partiamo da 0, se però la slice annotata non cade 
-                # tra quelle selezionate (e quindi rimaniamo con 7 slice), eliminiamo l'ultima slice
-                # si può fare meglio?
-                selected_slices = selected_slices[:-1]
-        else:
-            step = 2
-            start = max(0, slice - 2 * num_slices_each_side)
-            selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start    
-            # selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
-            selected_slices = selected_slices[selected_slices != slice]
-            if np.size(selected_slices) < 6:
-                # se la prima slice risulta essere negativa, allora partiamo da 0, se però la slice annotata non cade 
-                # tra quelle selezionate (e quindi rimaniamo con 7 slice), eliminiamo l'ultima slice
-                # si può fare meglio?
-                selected_slices = selected_slices[:-1]
+        # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous (see function)
+        selected_slices = find_selected_slices(num_slices_each_side, slice, volume_slices, label=label)
 
         for i, selected_slice in enumerate(selected_slices):
             pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
