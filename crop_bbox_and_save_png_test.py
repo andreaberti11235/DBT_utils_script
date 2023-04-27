@@ -88,6 +88,23 @@ def idx_square_box(idx, og_size, new_size):
     return idx_new
 
 
+def find_selected_slices(num_slices_each_side, label, slice, volume_slices, img_name):
+    if label == 'cancer':
+        num_slices_each_side += 1    
+    if volume_slices / 4 <= 4 * num_slices_each_side:
+        if slice - num_slices_each_side < 0:
+                # raise Exception(f'Mass in {img_name} is to close to the border!')
+            print(f'Warning: Mass in {img_name} of class {label} is too close to the border!')
+        elif slice + num_slices_each_side >= volume_slices:
+            print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too high)')
+
+    else:
+        if slice - 2 * num_slices_each_side < 0:
+                # raise Exception(f'Mass in {img_name} is to close to the border!')
+            print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too low)')
+        elif slice + 2 * num_slices_each_side >= volume_slices:
+            print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too high)')
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crop masses and save as png.')
     parser.add_argument('csv_box_file', help='csv file of bounding boxes (absolute path)')
@@ -175,27 +192,4 @@ if __name__ == "__main__":
         # volume_slices is the depth of the whole image, in the wiki-page it is stated that
         # the mass can be considered to extend for 25% of the whole volume.
         # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous
-        if volume_slices / 4 <= 4 * num_slices_each_side:
-            if slice - num_slices_each_side < 0:
-                # raise Exception(f'Mass in {img_name} is to close to the border!')
-                print(f'Warning: Mass in {img_name} of class {label} is too close to the border!')
-            elif slice + num_slices_each_side >= volume_slices:
-                print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too high)')
-            selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
-            selected_slices = selected_slices[selected_slices != slice]
-        else:
-            if slice - 2 * num_slices_each_side < 0:
-                # raise Exception(f'Mass in {img_name} is to close to the border!')
-                print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too low)')
-            elif slice + 2 * num_slices_each_side >= volume_slices:
-                print(f'Warning: Mass in {img_name} of class {label} is too close to the border! (Too high)')
-            # selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
-            # selected_slices = selected_slices[selected_slices != slice]
-
-        # for i, selected_slice in enumerate(selected_slices):
-        #     pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
-        #     base_out_name = out_file_name.split(sep='.')[0]
-        #     out_file_name_augm = f'{base_out_name}_slice{i}.png'
-        #     out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name_augm)
-            # pil_mass_augm.save(out_slice_augm_path, 'PNG')
-
+        find_selected_slices(num_slices_each_side, label, slice, volume_slices, img_name)
