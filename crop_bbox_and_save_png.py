@@ -173,10 +173,17 @@ if __name__ == "__main__":
 
         out_path = os.path.join(dest_dir, 'original', label, out_file_name)
 
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
+
         # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
         pil_mass.save(out_path, 'PNG')
 
         out_path_augm = os.path.join(dest_dir, 'augmented', label, out_file_name)
+
+        if not os.path.exists(out_path_augm):
+            os.makedirs(out_path_augm)
+
         pil_mass.save(out_path_augm, 'PNG')
         # volume_slices is the depth of the whole image, in the wiki-page it is stated that
         # the mass can be considered to extend for 25% of the whole volume.
