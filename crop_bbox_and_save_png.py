@@ -202,6 +202,6 @@ if __name__ == "__main__":
             pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
-            out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name)
+            out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name_augm)
             pil_mass_augm.save(out_slice_augm_path, 'PNG')
 
