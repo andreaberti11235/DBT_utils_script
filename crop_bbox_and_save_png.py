@@ -92,8 +92,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crop masses and save as png.')
     parser.add_argument('csv_box_file', help='csv file of bounding boxes (absolute path)')
     parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
-    parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of Breast-Cancer-Screening-DBT)')
-    parser.add_argument('-n', '--num_slices', type=int, default=3, help='Number (for each side) of additional slices next to the central slice qith lesion')
+    parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of benign/cancer)')
+    parser.add_argument('-n', '--num_slices', type=int, default=3, help='Number (for each side) of additional slices next to the central slice qith lesion (default 3)')
     args = parser.parse_args()
 
     csv_path = args.csv_box_file
@@ -190,11 +190,13 @@ if __name__ == "__main__":
         # the mass can be considered to extend for 25% of the whole volume.
         # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous
         if volume_slices / 4 <= 4 * num_slices_each_side:
+            if slice - num_slices_each_side < 0:
+                raise Exception(f'Mass in {img_name} is to close to the border!')
             selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
             selected_slices = selected_slices[selected_slices != slice]
         else:
             if slice - 2 * num_slices_each_side < 0:
-                raise Exception(f'Mass in {img_name} is to close to the border!')
+                raise Exception(f'Mass in {img_name} is too close to the border!')
             selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
             selected_slices = selected_slices[selected_slices != slice]
 
@@ -204,4 +206,3 @@ if __name__ == "__main__":
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
             out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name_augm)
             pil_mass_augm.save(out_slice_augm_path, 'PNG')
-
