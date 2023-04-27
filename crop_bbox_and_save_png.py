@@ -170,19 +170,20 @@ if __name__ == "__main__":
         pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
         out_file_name = img_name.split(sep='.')[0]
         out_file_name = f'{out_file_name}_mass{mass_count}.png'
+        
+        out_dir_path = os.path.join(dest_dir, 'original', label)
+        out_path = os.path.join(out_dir_path, out_file_name)
 
-        out_path = os.path.join(dest_dir, 'original', label, out_file_name)
-
-        if not os.path.exists(out_path):
-            os.makedirs(out_path)
+        if not os.path.exists(out_dir_path):
+            os.makedirs(out_dir_path)
 
         # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
         pil_mass.save(out_path, 'PNG')
+        out_dir_path_augm = os.path.join(dest_dir, 'augmented', label)
+        out_path_augm = os.path.join(out_dir_path_augm, out_file_name)
 
-        out_path_augm = os.path.join(dest_dir, 'augmented', label, out_file_name)
-
-        if not os.path.exists(out_path_augm):
-            os.makedirs(out_path_augm)
+        if not os.path.exists(out_dir_path_augm):
+            os.makedirs(out_dir_path_augm)
 
         pil_mass.save(out_path_augm, 'PNG')
         # volume_slices is the depth of the whole image, in the wiki-page it is stated that
@@ -201,5 +202,6 @@ if __name__ == "__main__":
             pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
-            pil_mass_augm.save(out_path_augm, 'PNG')
+            out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name)
+            pil_mass_augm.save(out_slice_augm_path, 'PNG')
 
