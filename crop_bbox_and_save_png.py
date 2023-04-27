@@ -93,12 +93,11 @@ def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
     if volume_slices / 4 <= 4 * num_slices_each_side:
         step = 1
         start = max(0, slice - num_slices_each_side)
-        selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start   
             # selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
     else:
         step = 2
         start = max(0, slice - 2 * num_slices_each_side)
-        selected_slices = np.arange(0, 2 * num_slices_each_side) * step + start    
+    selected_slices = np.arange(0, 2 * num_slices_each_side + 1) * step + start    
             # selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
     dim = np.size(selected_slices)
     selected_slices = selected_slices[selected_slices != slice]
