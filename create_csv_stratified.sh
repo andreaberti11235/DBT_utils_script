@@ -7,5 +7,5 @@ for y in {benign,cancer}; \
 do for z in $(ls ${y}); \
 do \
 name=$(echo ${z} | cut -d '_' -f1) && \
-echo ${y}/${z},${name}T,${y} >> training_bm.csv; \
+echo ${y}/${z},${name},${y} >> training_bm.csv; \
 done; done
