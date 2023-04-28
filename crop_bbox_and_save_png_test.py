@@ -140,35 +140,41 @@ if __name__ == "__main__":
         img_name = f'{patient_id}_{study_id}_{view}.dcm'
         img_path = os.path.join(path_to_imgs, label, img_name)
 
-        # # check if same patient dcm
-        # if img_name == img_name_old:
-        #     mass_count += 1
-        #     # print(f'Same mass in row {idx}')
-        # else:
-        #     mass_count = 0
+        # check if same patient dcm
+        if img_name == img_name_old:
+            mass_count += 1
+            # print(f'Same mass in row {idx}')
+        else:
+            mass_count = 0
 
-        # img_name_old = img_name
+        img_name_old = img_name
 
-        # # opening the dicom file and converting it ot numpy
-        # dcm_img = pydicom.dcmread(img_path)
-        # dcm_img = pydicom.dcmread(img_path)
-        # npy_img = dcm_img.pixel_array
-        # # some images have to be reoriented
-        # view_laterality = view[0].upper()
-        # image_laterality = _get_image_laterality(npy_img)
-        # if not image_laterality == view_laterality:
-        #         npy_img = np.flip(npy_img, axis=(-1, -2))
+        # opening the dicom file and converting it ot numpy
+        dcm_img = pydicom.dcmread(img_path)
+        dcm_img = pydicom.dcmread(img_path)
+        npy_img = dcm_img.pixel_array
+        # some images have to be reoriented
+        view_laterality = view[0].upper()
+        image_laterality = _get_image_laterality(npy_img)
+        if not image_laterality == view_laterality:
+                npy_img = np.flip(npy_img, axis=(-1, -2))
 
         # Identify max dimention to create squared crops
         max_dim = np.maximum(width, height)
         if width >= height:
             y = idx_square_box(y, height, max_dim)
             if y < 0:
-                print(f'Warning: Mass in {img_name} of class {label} with Y too close to the border! (Y={y})')
+                print(f'Warning: Mass in {img_name} of class {label} with Y too close to the left border! (Y={y})')
+            if y + max_dim > npy_img.shape[1]:
+                print(f'Warning: Mass in {img_name} of class {label} with Y too close to the right border! (Y_right={y + max_dim})')
+
         else:
             x = idx_square_box(x, width, max_dim)
             if x < 0:
                 print(f'Warning: Mass in {img_name} of class {label} with X too close to the border! (X={x})')
+            if x + max_dim > npy_img.shape[2]:
+                print(f'Warning: Mass in {img_name} of class {label} with X too close to the right border! (X_right={x + max_dim})')
+
 
         # pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
         out_file_name = img_name.split(sep='.')[0]
