@@ -98,7 +98,6 @@ def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
         step = 2
         start = max(0, slice - 2 * num_slices_each_side)
     selected_slices = np.arange(0, 2 * num_slices_each_side + 1) * step + start    
-            # selected_slices = np.arange(slice - 2 * num_slices_each_side, slice + 2 * num_slices_each_side + 1, step=2)
     dim = np.size(selected_slices)
     selected_slices = selected_slices[selected_slices != slice]
     if np.size(selected_slices) == dim:
@@ -184,8 +183,12 @@ if __name__ == "__main__":
         max_dim = np.maximum(width, height)
         if width >= height:
             y = idx_square_box(y, height, max_dim)
+            if y + max_dim > npy_img.shape[1]:
+                y = npy_img.shape[1] - max_dim
         else:
             x = idx_square_box(x, width, max_dim)
+            if x + max_dim > npy_img.shape[2]:
+                x = npy_img.shape[2] - max_dim
 
         pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
         out_file_name = img_name.split(sep='.')[0]
