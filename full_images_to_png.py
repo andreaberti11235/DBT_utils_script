@@ -6,6 +6,7 @@ import pandas as pd
 import pydicom
 from PIL import Image
 import scipy.ndimage
+import shutil
 from tqdm import tqdm
 
 def draw_box(
@@ -75,11 +76,11 @@ def _get_image_laterality(pixel_array: np.ndarray) -> str:
     right_edge = np.sum(pixel_array[:, :, -1])  # sum of right edge pixels
     return "R" if left_edge < right_edge else "L"
 
-def crop_mas_and_create_pil(npy_img, slice, x, y, width, height):
-    mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
-    mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
-    mass_cropped = mass_cropped.astype(np.uint8)
-    pil_mass = Image.fromarray(mass_cropped)
+def mass_slice_and_create_pil(npy_img, slice):
+    mass_slice = npy_img[slice, :, :]
+    mass_slice = ((mass_slice - np.amin(mass_slice))/(np.amax(mass_slice) - np.amin(mass_slice)))*255
+    mass_slice = mass_slice.astype(np.uint8)
+    pil_mass = Image.fromarray(mass_slice)
     return pil_mass
 
 def idx_square_box(idx, og_size, new_size):
@@ -90,7 +91,7 @@ def idx_square_box(idx, og_size, new_size):
 def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
     if label == 'cancer':
         num_slices_each_side += 1
-    if volume_slices / 4 <= 4 * num_slices_each_side:
+    if volume_slices / 4 <= 4 * num_slices_each_side: # prenderei le slice a step di due se ce ne fossero abbastanza
         step = 1
         start = max(0, slice - num_slices_each_side)
             # selected_slices = np.arange(slice - num_slices_each_side, slice + num_slices_each_side + 1)
@@ -106,6 +107,32 @@ def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
             # si può fare meglio?
         selected_slices = selected_slices[:-1]
     return selected_slices
+
+def find_z_intervals(central_slice, volume_slices):
+    mass_depth = np.round(volume_slices / 4)
+    first_edge = max(0, central_slice - (mass_depth // 2))
+    second_edge = max(mass_depth, first_edge + mass_depth)
+    return first_edge, second_edge
+
+def overlap(interval1, interval2):
+    """
+    Given [0, 4] and [1, 10] returns [1, 4]
+    """
+    if interval2[0] <= interval1[0] <= interval2[1]:
+        start = interval1[0]
+    elif interval1[0] <= interval2[0] <= interval1[1]:
+        start = interval2[0]
+    else:
+        start = 0
+
+    if interval2[0] <= interval1[1] <= interval2[1]:
+        end = interval1[1]
+    elif interval1[0] <= interval2[1] <= interval1[1]:
+        end = interval2[1]
+    else:
+        end = 0
+
+    return (start, end)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crop masses and save as png.')
@@ -124,6 +151,10 @@ if __name__ == "__main__":
 
     mass_count = 0
     img_name_old = ''
+    selected_slices_previous_mass = []
+    z_interval_previous_mass = []
+    central_slices_previous_masses = []
+    bbox_previous_mass = []
 
     for idx, row in tqdm(df_box.iterrows(), total=len(df_box.index)):
         # extract info from the csv
@@ -132,7 +163,7 @@ if __name__ == "__main__":
         study_id = row['StudyUID']
         view = row['View']
 
-        slice = row['Slice']
+        slice_number = row['Slice']
         x = row['X']
         y = row['Y']
         width = row['Width']
@@ -142,12 +173,20 @@ if __name__ == "__main__":
         img_name = f'{patient_id}_{study_id}_{view}.dcm'
         img_path = os.path.join(path_to_imgs, label, img_name)
 
+        x_center = x + width // 2
+        y_center = y + height // 2
+
         # check if same patient dcm
         if img_name == img_name_old:
             mass_count += 1
             # print(f'Same mass in row {idx}')
         else:
             mass_count = 0
+            selected_slices_previous_mass = []
+            z_interval_previous_mass = []
+            central_slices_previous_masses = []
+            bbox_previous_mass = []
+
 
         img_name_old = img_name
 
@@ -161,62 +200,128 @@ if __name__ == "__main__":
         if not image_laterality == view_laterality:
                 npy_img = np.flip(npy_img, axis=(-1, -2))
 
-        # img_bbox = np.copy(npy_img)
-        # img_bbox = draw_box(image=img_bbox[slice, :, :], x=x, y=y, width=width, height=height, lw=10)
-        
-
-        # mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
-        # # plt.subplot(121)
-        # # plt.imshow(img_bbox, cmap='gray')
-        # # plt.subplot(122)
-        # # plt.imshow(mass_cropped, cmap='gray')
-        # # plt.show()
-
-        # # riscalare le immagini crop a max e min del crop?
-        # mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
-        # mass_cropped = mass_cropped.astype(np.uint8)
-
-        # # create PIL image and save as png
-        # pil_mass = Image.fromarray(mass_cropped)
-
-        # Identify max dimention to create squared crops
-        max_dim = np.maximum(width, height)
-        if width >= height:
-            y = idx_square_box(y, height, max_dim)
-            if y + max_dim > npy_img.shape[1]:
-                y = npy_img.shape[1] - max_dim
-        else:
-            x = idx_square_box(x, width, max_dim)
-            if x + max_dim > npy_img.shape[2]:
-                x = npy_img.shape[2] - max_dim
-
-        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
+        # creating the PIL file of the annotated slice
+        pil_mass = mass_slice_and_create_pil(npy_img, slice_number)
+        # getting the name without the dcm extension
         out_file_name = img_name.split(sep='.')[0]
+        original_file_name = out_file_name
+        # creating the name of the image png file and of the corresponding txt file for the label. They
+        # have the same name and different extension
         out_file_name = f'{out_file_name}_mass{mass_count}.png'
+        out_txt_label = f'{out_file_name}_mass{mass_count}.txt'
         
-        out_dir_path = os.path.join(dest_dir, 'original', label)
-        out_path = os.path.join(out_dir_path, out_file_name)
+        # in dest_dir, we will have images/ with the png files and labels/ with the txt files
+        out_dir_path_imgs = os.path.join(dest_dir, 'original', 'images')
+        out_path = os.path.join(out_dir_path_imgs, out_file_name)
 
-        if not os.path.exists(out_dir_path):
-            os.makedirs(out_dir_path)
+        if not os.path.exists(out_dir_path_imgs):
+            os.makedirs(out_dir_path_imgs)
 
-        # aggiungere sottocartella 'original', in modo che sia .../original/benign, e un'altra con un altro nome per distinguere le slice annotate da quelle che prendiamo in più
-        pil_mass.save(out_path, 'PNG')
-        out_dir_path_augm = os.path.join(dest_dir, 'augmented', label)
-        out_path_augm = os.path.join(out_dir_path_augm, out_file_name)
+        # creare anche la dir per le label
+        out_dir_path_labels = os.path.join(dest_dir, 'original', 'labels')
+        out_path_label = os.path.join(out_dir_path_labels, out_txt_label)
 
-        if not os.path.exists(out_dir_path_augm):
-            os.makedirs(out_dir_path_augm)
+        if not os.path.exists(out_dir_path_labels):
+            os.makedirs(out_dir_path_labels)
 
-        pil_mass.save(out_path_augm, 'PNG')
+        # creating the folder for the augmented images (augmented/images/) and their labels (augmented/labels/)
+        out_dir_path_imgs_augm = os.path.join(dest_dir, 'augmented', 'images')
+        out_path_augm = os.path.join(out_dir_path_imgs_augm, out_file_name)
+
+        if not os.path.exists(out_dir_path_imgs_augm):
+            os.makedirs(out_dir_path_imgs_augm)
+
+        out_dir_path_label_augm = os.path.join(dest_dir, 'augmented', 'labels')
+        out_path_label_augm = os.path.join(out_dir_path_label_augm, out_txt_label)
+
+        if not os.path.exists(out_dir_path_label_augm):
+            os.makedirs(out_dir_path_label_augm)
+
+        # fare un check se coincide con la stessa slice centrale di masse precedenti dello stesso paziente
+        if slice_number in central_slices_previous_masses:
+            # if mass in the same slice of a previous one, update the label file of that mass
+            mass_nr = central_slices_previous_masses.index(slice_number) # this returns the position of the first occurrance of the value
+            previous_label_path = os.path.join(out_dir_path_labels, f'{original_file_name}_mass{mass_nr}.txt')
+            string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
+            with open(previous_label_path, 'a') as previous_label:
+                previous_label.append(f'\n{string_to_be_written}')
+        else:
+            # otherwise, create the txt file for the label and save the png file
+            with open(out_path_label, "w") as label_file:
+                label_file.write(f'0, {x_center}, {y_center}, {width}, {height}')
+
+            pil_mass.save(out_path, 'PNG')
+            # ricordarsi di aggiungere CLAHE (forse si può mettere anche dentro alla funzione mass_slice_and_create_pil)
+
+            # making the exact same copy of the original and label image in the augmented folder
+            pil_mass.save(out_path_augm, 'PNG')
+            shutil.copy(out_path_label, out_path_label_augm)
+
         # volume_slices is the depth of the whole image, in the wiki-page it is stated that
         # the mass can be considered to extend for 25% of the whole volume.
-        # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguous (see function)
-        selected_slices = find_selected_slices(num_slices_each_side, slice, volume_slices, label=label)
+        # When possible, we take 3 slices for each side, with a step of 2, otherwise, we take them contiguously (see function)
+        selected_slices = find_selected_slices(num_slices_each_side, slice_number, volume_slices, label=label)
+        z_interval = find_z_intervals(slice_number, volume_slices)
+
+        # initialising a dictionary containing the slices of the new mass that overlap with one of previous masses, 
+        # but were not selected in the previous iterations
+
+        new_slices_in_interval = [sublist[:] for sublist in selected_slices]
+        # if it is not the first mass, check if there is overlap in slices with the previous masses (if same patient)
+        if mass_count != 0:
+            for i, previous_interval in enumerate(z_interval_previous_mass):
+                overlap_interval = overlap(z_interval, previous_interval)
+                if overlap_interval != (0, 0):
+                    # if the masses appear on the same slices, check if those are selected slices
+                    for old_slice in selected_slices_previous_mass[i]:
+                        for new_slice in selected_slices:
+                            if old_slice == new_slice:
+                                # adding the bbox of the new mass to the label file 
+                                file_name = f'{original_file_name}_mass{i}.txt'
+                                file_path = os.path.join(out_dir_path_label_augm, file_name)
+                                string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
+                                with open(file_path, 'a') as label_file_old:
+                                    label_file_old.write(f'\n{string_to_be_written}')
+                                # removing the slice for the new mass
+                                selected_slices.remove(new_slice)
 
         for i, selected_slice in enumerate(selected_slices):
-            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
+            pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
-            out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name_augm)
+            out_file_name_label_augm = f'{base_out_name}_slice{i}.txt'
+            out_slice_augm_path = os.path.join(out_dir_path_imgs_augm, out_file_name_augm)
+            out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
+            with open(out_label_augm_path, "w") as label_file:
+                label_file.write(f'0, {x_center}, {y_center}, {width}, {height}')
             pil_mass_augm.save(out_slice_augm_path, 'PNG')
+
+
+        if mass_count != 0:
+            for i, previous_interval in enumerate(z_interval_previous_mass):
+                overlap_interval = overlap(z_interval, previous_interval)
+                if overlap_interval != (0, 0):
+                    # if the masses appear on the same slices, check if those are selected slices
+                    for old_slice in selected_slices_previous_mass[i]:
+                        for new_slice in selected_slices:
+                            if overlap_interval[0] <= new_slice <= overlap_interval[1]:
+                                base_out_name = out_file_name.split(sep='.')[0]
+                                out_file_name_label_augm = f'{base_out_name}_slice{i}.txt'
+                                out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
+                                x_center_old = bbox_previous_mass[i][0] # the tuple does not contain the label (0)
+                                y_center_old = bbox_previous_mass[i][1]
+                                width_old = bbox_previous_mass[i][2]
+                                height_old = bbox_previous_mass[i][3]
+                                string_to_be_written = f'0, {x_center_old}, {y_center_old}, {width_old}, {height_old}'
+                                with open(out_label_augm_path, "a") as label_file:
+                                    label_file.write(f'\n{string_to_be_written}')
+
+
+
+        z_interval_previous_mass.append(z_interval)
+        bbox_previous_mass.append((x_center, y_center, width, height))
+        # appending the slice index to the list
+        central_slices_previous_masses.append(slice_number)
+        selected_slices_previous_mass.append(selected_slices)
+# funziona se ho più di 2 masse? forse devo fare una lista invece di una tupla e appendere ogni volta, o anche una lista di tuple
+# e considerare gli elementi a coppie quando controllo le intersezioni...
