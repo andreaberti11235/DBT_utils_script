@@ -244,7 +244,7 @@ if __name__ == "__main__":
             previous_label_path = os.path.join(out_dir_path_labels, f'{original_file_name}_mass{mass_nr}.txt')
             string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
             with open(previous_label_path, 'a') as previous_label:
-                previous_label.append(f'\n{string_to_be_written}')
+                previous_label.write(f'\n{string_to_be_written}')
         else:
             # otherwise, create the txt file for the label and save the png file
             with open(out_path_label, "w") as label_file:
@@ -275,6 +275,7 @@ if __name__ == "__main__":
                     for old_slice in selected_slices_previous_mass[i]:
                         for new_slice in selected_slices:
                             if old_slice == new_slice:
+                                print(f'New mass {mass_count} overlaps with previous mass {i} in slice {old_slice} for patient {original_file_name}. First check.')
                                 # adding the bbox of the new mass to the label file 
                                 file_name = f'{original_file_name}_mass{i}_slice{old_slice}.txt'
                                 file_path = os.path.join(out_dir_path_label_augm, file_name)
@@ -287,8 +288,8 @@ if __name__ == "__main__":
         for i, selected_slice in enumerate(selected_slices):
             pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice)
             base_out_name = out_file_name.split(sep='.')[0]
-            out_file_name_augm = f'{base_out_name}_slice{i}.png'
-            out_file_name_label_augm = f'{base_out_name}_slice{i}.txt'
+            out_file_name_augm = f'{base_out_name}_slice{selected_slice}.png'
+            out_file_name_label_augm = f'{base_out_name}_slice{selected_slice}.txt'
             out_slice_augm_path = os.path.join(out_dir_path_imgs_augm, out_file_name_augm)
             out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
             with open(out_label_augm_path, "w") as label_file:
@@ -304,8 +305,9 @@ if __name__ == "__main__":
                     for old_slice in selected_slices_previous_mass[i]:
                         for new_slice in selected_slices:
                             if overlap_interval[0] <= new_slice <= overlap_interval[1]:
+                                print(f'Previous mass ({i}) overlaps with current mass. Adding previous mass label to current mass label file. Triggered for {original_file_name} at mass {mass_count}. Second check.')
                                 base_out_name = out_file_name.split(sep='.')[0]
-                                out_file_name_label_augm = f'{base_out_name}_slice{i}.txt'
+                                out_file_name_label_augm = f'{base_out_name}_slice{new_slice}.txt'
                                 out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
                                 x_center_old = bbox_previous_mass[i][0] # the tuple does not contain the label (0)
                                 y_center_old = bbox_previous_mass[i][1]
