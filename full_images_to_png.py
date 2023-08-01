@@ -276,7 +276,7 @@ if __name__ == "__main__":
                         for new_slice in selected_slices:
                             if old_slice == new_slice:
                                 # adding the bbox of the new mass to the label file 
-                                file_name = f'{original_file_name}_mass{i}.txt'
+                                file_name = f'{original_file_name}_mass{i}_slice{old_slice}.txt'
                                 file_path = os.path.join(out_dir_path_label_augm, file_name)
                                 string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
                                 with open(file_path, 'a') as label_file_old:
