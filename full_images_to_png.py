@@ -266,7 +266,6 @@ if __name__ == "__main__":
         # initialising a dictionary containing the slices of the new mass that overlap with one of previous masses, 
         # but were not selected in the previous iterations
 
-        new_slices_in_interval = [sublist[:] for sublist in selected_slices]
         # if it is not the first mass, check if there is overlap in slices with the previous masses (if same patient)
         if mass_count != 0:
             for i, previous_interval in enumerate(z_interval_previous_mass):
