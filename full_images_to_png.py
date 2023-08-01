@@ -282,7 +282,7 @@ if __name__ == "__main__":
                                 with open(file_path, 'a') as label_file_old:
                                     label_file_old.write(f'\n{string_to_be_written}')
                                 # removing the slice for the new mass
-                                selected_slices.remove(new_slice)
+                                selected_slices = selected_slice[selected_slices != new_slice]
 
         for i, selected_slice in enumerate(selected_slices):
             pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice)
