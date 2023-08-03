@@ -80,6 +80,8 @@ def _get_image_laterality(pixel_array: np.ndarray) -> str:
 def mass_slice_and_create_pil(npy_img, slice, apply_clahe):
     mass_slice = npy_img[slice, :, :]
     mass_slice = ((mass_slice - np.amin(mass_slice))/(np.amax(mass_slice) - np.amin(mass_slice)))*255
+    mass_slice = mass_slice.astype(np.uint8)
+
     if apply_clahe:
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         clahe_img = clahe.apply(mass_slice)
@@ -87,7 +89,6 @@ def mass_slice_and_create_pil(npy_img, slice, apply_clahe):
         clahe_img = clahe_img.astype(np.uint8)
         pil_mass = Image.fromarray(clahe_img)
     else:    
-        mass_slice = mass_slice.astype(np.uint8)
         pil_mass = Image.fromarray(mass_slice)
     return pil_mass
 
