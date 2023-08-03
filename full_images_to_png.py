@@ -1,5 +1,6 @@
 import os
 import argparse
+import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
@@ -76,11 +77,18 @@ def _get_image_laterality(pixel_array: np.ndarray) -> str:
     right_edge = np.sum(pixel_array[:, :, -1])  # sum of right edge pixels
     return "R" if left_edge < right_edge else "L"
 
-def mass_slice_and_create_pil(npy_img, slice):
+def mass_slice_and_create_pil(npy_img, slice, apply_clahe):
     mass_slice = npy_img[slice, :, :]
     mass_slice = ((mass_slice - np.amin(mass_slice))/(np.amax(mass_slice) - np.amin(mass_slice)))*255
-    mass_slice = mass_slice.astype(np.uint8)
-    pil_mass = Image.fromarray(mass_slice)
+    if apply_clahe:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        clahe_img = clahe.apply(mass_slice)
+        clahe_img = ((clahe_img - np.amin(clahe_img))/(np.amax(clahe_img) - np.amin(clahe_img)))*255
+        clahe_img = clahe_img.astype(np.uint8)
+        pil_mass = Image.fromarray(clahe_img)
+    else:    
+        mass_slice = mass_slice.astype(np.uint8)
+        pil_mass = Image.fromarray(mass_slice)
     return pil_mass
 
 def idx_square_box(idx, og_size, new_size):
@@ -140,12 +148,14 @@ def main():
     parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
     parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of benign/cancer)')
     parser.add_argument('-n', '--num_slices', type=int, default=3, help='Number (for each side) of additional slices next to the central slice qith lesion (default 3)')
+    parser.add_argument('-c', '--clahe', help='Apply CLAHE preprocessing to images', default=False, action='store_true')
     args = parser.parse_args()
 
     csv_path = args.csv_box_file
     dest_dir = args.dest_dir
     path_to_imgs = args.path_to_imgs
     num_slices_each_side = args.num_slices
+    apply_clahe = args.clahe
 
     df_box = pd.read_csv(csv_path)
 
@@ -200,7 +210,7 @@ def main():
                 npy_img = np.flip(npy_img, axis=(-1, -2))
 
         # creating the PIL file of the annotated slice
-        pil_mass = mass_slice_and_create_pil(npy_img, slice_number)
+        pil_mass = mass_slice_and_create_pil(npy_img, slice_number, apply_clahe=apply_clahe)
         # getting the name without the dcm extension
         original_file_name = img_name.split(sep='.')[0]
 
@@ -301,7 +311,7 @@ def main():
                             selected_slices = selected_slices[selected_slices != new_slice]
 
         for selected_slice in selected_slices:
-            pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice)
+            pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice, apply_clahe=apply_clahe)
             # base_out_name = original_file_name.split(sep='.')[0]########### levare la slice e sostituirla con quella attuale, usare original_file_name?
             out_file_name_augm = f'{original_file_name}_mass{mass_count}_slice{selected_slice}.png'
             out_file_name_label_augm = f'{original_file_name}_mass{mass_count}_slice{selected_slice}.txt'
