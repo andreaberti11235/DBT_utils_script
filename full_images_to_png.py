@@ -92,10 +92,6 @@ def mass_slice_and_create_pil(npy_img, slice, apply_clahe):
         pil_mass = Image.fromarray(mass_slice)
     return pil_mass
 
-def idx_square_box(idx, og_size, new_size):
-    center = idx + (og_size // 2) 
-    idx_new = center - (new_size // 2)
-    return idx_new
 
 def find_selected_slices(num_slices_each_side, slice, volume_slices, label):
     if label == 'cancer':
@@ -209,6 +205,17 @@ def main():
         image_laterality = _get_image_laterality(npy_img)
         if not image_laterality == view_laterality:
                 npy_img = np.flip(npy_img, axis=(-1, -2))
+        
+        img_height = npy_img.shape[0]
+        img_width = npy_img.shape[1]
+
+        # normalising the coordinates for Yolo
+        x_center /= img_width
+        y_center /= img_height
+
+        width /= img_width
+        height /= img_height
+
 
         # creating the PIL file of the annotated slice
         pil_mass = mass_slice_and_create_pil(npy_img, slice_number, apply_clahe=apply_clahe)
