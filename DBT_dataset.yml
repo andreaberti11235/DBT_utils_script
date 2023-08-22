@@ -1,0 +1,16 @@
+name: DBT_dataset
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pandas
+  - scipy
+  - jpeg
+  - openjpeg
+  - pillow
+  - jupyterlab
+  - pydicom
+  - matplotlib
+  - tqdm
+prefix: /Users/andreaberti/miniconda3/envs/DBT_dataset
