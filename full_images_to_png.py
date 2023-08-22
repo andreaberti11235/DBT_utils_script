@@ -206,8 +206,8 @@ def main():
         if not image_laterality == view_laterality:
                 npy_img = np.flip(npy_img, axis=(-1, -2))
         
-        img_height = npy_img.shape[0]
-        img_width = npy_img.shape[1]
+        img_height = npy_img.shape[1]
+        img_width = npy_img.shape[2]
 
         # normalising the coordinates for Yolo
         x_center /= img_width
@@ -259,7 +259,7 @@ def main():
             # if mass in the same slice of a previous one, update the label file of that mass
             mass_nr = central_slices_previous_masses.index(slice_number) # this returns the position of the first occurrance of the value
             previous_label_path = os.path.join(out_dir_path_labels, f'{original_file_name}_mass{mass_nr}_slice{slice_number}.txt')
-            string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
+            string_to_be_written = f'0 {x_center} {y_center} {width} {height}'
             with open(previous_label_path, 'a') as previous_label:
                 previous_label.write(f'\n{string_to_be_written}')
             
@@ -273,7 +273,7 @@ def main():
         else:
             # otherwise, create the txt file for the label and save the png file
             with open(out_path_label, "w") as label_file:
-                label_file.write(f'0, {x_center}, {y_center}, {width}, {height}')
+                label_file.write(f'0 {x_center} {y_center} {width} {height}')
 
             pil_mass.save(out_path, 'PNG')
             # ricordarsi di aggiungere CLAHE (forse si può mettere anche dentro alla funzione mass_slice_and_create_pil)
@@ -308,7 +308,7 @@ def main():
                                 # adding the bbox of the new mass to the label file 
                                 file_name = f'{original_file_name}_mass{i}_slice{old_slice}.txt'
                                 file_path = os.path.join(out_dir_path_label_augm, file_name)
-                                string_to_be_written = f'0, {x_center}, {y_center}, {width}, {height}'
+                                string_to_be_written = f'0 {x_center} {y_center} {width} {height}'
                                 with open(file_path, 'a') as label_file_old:
                                     label_file_old.write(f'\n{string_to_be_written}')
                                 
@@ -326,7 +326,7 @@ def main():
             out_slice_augm_path = os.path.join(out_dir_path_imgs_augm, out_file_name_augm)
             out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
             with open(out_label_augm_path, "w") as label_file:
-                label_file.write(f'0, {x_center}, {y_center}, {width}, {height}')
+                label_file.write(f'0 {x_center} {y_center} {width} {height}')
             pil_mass_augm.save(out_slice_augm_path, 'PNG')
 
             if mass_count != 0:
@@ -345,7 +345,7 @@ def main():
                                     y_center_old = bbox_previous_mass[i][1]
                                     width_old = bbox_previous_mass[i][2]
                                     height_old = bbox_previous_mass[i][3]
-                                    string_to_be_written = f'0, {x_center_old}, {y_center_old}, {width_old}, {height_old}'
+                                    string_to_be_written = f'0 {x_center_old} {y_center_old} {width_old} {height_old}'
                                     with open(out_label_augm_path, "a") as label_file:
                                         label_file.write(f'\n{string_to_be_written}')
                                     # errore qui: penso che non serva il for alla riga 307, com'è ora per ogni slice selezionata della vecchia massa
