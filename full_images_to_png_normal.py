@@ -157,7 +157,7 @@ def main():
     for idx, image in tqdm(enumerate(os.listdir(path_to_imgs))):
         
         img_path = os.path.join(path_to_imgs, image)
-        extension = image.split(sep='.')
+        extension = image.split(sep='.')[-1]
         
         if extension == 'dcm':
 
