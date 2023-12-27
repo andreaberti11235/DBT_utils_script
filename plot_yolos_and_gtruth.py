@@ -91,9 +91,13 @@ def main():
         yolov8_img = os.path.join(yolov8_dir, f'{name}.png')
 
         # Specify the font and size
-        font = ImageFont.truetype("Supplemental/Futura.ttc", 128)
+        #font = ImageFont.truetype("Supplemental/Futura.ttc", 128)
+        font = ImageFont.truetype("URWGothic-Book.otf", 128)
         fill = (153, 153, 255)
-        font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
+        font2 = ImageFont.truetype("URWBookman-Light.otf", 64)
+
+        #fill = (153, 153, 255)
+        #font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
 
 
         yolov5_pil = Image.open(yolov5_img)
