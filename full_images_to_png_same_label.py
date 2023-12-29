@@ -295,16 +295,16 @@ def main():
         # if it is not the first mass, check if there is overlap in slices with the previous masses (if same patient)
         if mass_count != 0:
             for i, previous_interval in enumerate(z_interval_previous_mass):
-                overlap_interval = overlap(z_interval, previous_interval)
-                if overlap_interval != (0, 0):
+                # overlap_interval = overlap(z_interval, previous_interval)
+                # if overlap_interval != (0, 0):
                     # if the masses appear on the same slices, check if those are selected slices
                     for old_slice in selected_slices_previous_mass[i]:
                         # for new_slice in selected_slices:
-                            if overlap_interval[0] <= old_slice <= overlap_interval[1]:
+                            # if overlap_interval[0] <= old_slice <= overlap_interval[1]:
                             # if old_slice == new_slice:
                                 # questa cosa non è corretta, non devo solo vedere quando sono uguali le slice, ma semplicemente quando stanno nell'intervallo, un po' come ho 
                                 # fatto sotto, stessa cosa
-                                print(f'New mass {mass_count} overlaps with previous mass {i} in slice {old_slice} for patient {original_file_name}. First check.')
+                                # print(f'New mass {mass_count} overlaps with previous mass {i} in slice {old_slice} for patient {original_file_name}. First check.')
                                 # adding the bbox of the new mass to the label file 
                                 file_name = f'{original_file_name}_mass{i}_slice{old_slice}.txt'
                                 file_path = os.path.join(out_dir_path_label_augm, file_name)
@@ -319,7 +319,7 @@ def main():
                             selected_slices = selected_slices[selected_slices != new_slice]
 
         for selected_slice in selected_slices:
-            pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice, apply_clahe=apply_clahe)
+            # pil_mass_augm = mass_slice_and_create_pil(npy_img, selected_slice, apply_clahe=apply_clahe)
             # base_out_name = original_file_name.split(sep='.')[0]########### levare la slice e sostituirla con quella attuale, usare original_file_name?
             out_file_name_augm = f'{original_file_name}_mass{mass_count}_slice{selected_slice}.png'
             out_file_name_label_augm = f'{original_file_name}_mass{mass_count}_slice{selected_slice}.txt'
@@ -331,13 +331,13 @@ def main():
 
             if mass_count != 0:
                 for i, previous_interval in enumerate(z_interval_previous_mass):
-                    overlap_interval = overlap(z_interval, previous_interval)
-                    if overlap_interval != (0, 0):
+                    # overlap_interval = overlap(z_interval, previous_interval)
+                    # if overlap_interval != (0, 0):
                         # if the masses appear on the same slices, check if those are selected slices
                         # for old_slice in selected_slices_previous_mass[i]:
                             # for new_slice in selected_slices:
-                                if overlap_interval[0] <= selected_slice <= overlap_interval[1]:
-                                    print(f'Previous mass ({i}) overlaps with current mass in slice {selected_slice}. Adding previous mass label to current mass label file. Triggered for {original_file_name} at mass {mass_count}. Second check.')
+                                # if overlap_interval[0] <= selected_slice <= overlap_interval[1]:
+                                    # print(f'Previous mass ({i}) overlaps with current mass in slice {selected_slice}. Adding previous mass label to current mass label file. Triggered for {original_file_name} at mass {mass_count}. Second check.')
                                     # base_out_name = out_file_name.split(sep='.')[0]############
                                     # out_file_name_label_augm = f'{base_out_name}_slice{selected_slice}.txt'
                                     # out_label_augm_path = os.path.join(out_dir_path_label_augm, out_file_name_label_augm)
