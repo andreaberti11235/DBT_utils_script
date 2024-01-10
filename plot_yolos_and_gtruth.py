@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from PIL import Image, ImageOps, ImageDraw, ImageFont
-from tqdm import tqdm
 
 
 def draw_box(
