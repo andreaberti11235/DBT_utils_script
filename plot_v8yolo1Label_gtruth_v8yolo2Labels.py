@@ -56,14 +56,14 @@ def draw_box(
 
 def main():
     parser = argparse.ArgumentParser(description='Plot the resuts of yolov5 and yolov8, together with the grounf truth.')
-    parser.add_argument('yolov5_dir', help='Absolute path of the folder containing the images resulting from yolov5 inference')
-    parser.add_argument('yolov8_dir', help='Absolute path of the folder containing the images resulting from yolov5 inference')
+    parser.add_argument('yolov8_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference, with the original labels')
+    parser.add_argument('yolov8_SL_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference, with the same labels for all the slices')
     parser.add_argument('gt_dir', help='Absolute path to folder of input images (parent of images/ and labels/)')
     parser.add_argument('out_dir', help='Absolute path to folder where the plots will be saved')
     args = parser.parse_args()
 
-    yolov5_dir = args.yolov5_dir
-    yolov8_dir = args.yolov8_dir
+    yolov5_dir = args.yolov8_dir
+    yolov8_dir = args.yolov8_SL_dir
     gt_dir = args.gt_dir
     out_dir = args.out_dir
 
@@ -106,7 +106,7 @@ def main():
         # Create an ImageDraw object
         draw_v5 = ImageDraw.Draw(yolov5_pil)
         # Draw the text on the image at a given position and color
-        draw_v5.text((500, 100), "Yolo v5", font=font, fill=fill)
+        draw_v5.text((500, 100), "Yolo v8 Orig. Label", font=font, fill=fill)
         draw_v5.text((500, 250), f"{name}", font=font2, fill=fill)
 
 
@@ -117,7 +117,7 @@ def main():
         # Create an ImageDraw object
         draw_v8 = ImageDraw.Draw(yolov8_pil)
         # Draw the text on the image at a given position and color
-        draw_v8.text((500, 100), "Yolo v8", font=font, fill=fill)
+        draw_v8.text((500, 100), "Yolo v8 Same Labels", font=font, fill=fill)
 
 
 
