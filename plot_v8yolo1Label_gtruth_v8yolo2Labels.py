@@ -55,7 +55,7 @@ def draw_box(
     return image
 
 def main():
-    parser = argparse.ArgumentParser(description='Plot the resuts of yolov5 and yolov8, together with the grounf truth.')
+    parser = argparse.ArgumentParser(description='Plot the resuts of yolov8 with the original labels and yolov8 with the same labels on all of the slices, together with the ground truth.')
     parser.add_argument('yolov8_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference, with the original labels')
     parser.add_argument('yolov8_SL_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference, with the same labels for all the slices')
     parser.add_argument('gt_dir', help='Absolute path to folder of input images (parent of images/ and labels/)')
