@@ -1,6 +1,7 @@
 import argparse
 from PIL import Image
-from ultralytics import YOLO, Ensemble
+from ultralytics import YOLO
+from ultralytics.nn.tasks import Ensemble
 import os
 from glob import glob
 
