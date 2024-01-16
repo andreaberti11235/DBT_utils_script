@@ -1,6 +1,6 @@
 import argparse
 from PIL import Image
-from ultralytics import YOLO
+from ultralytics import YOLO, Ensemble
 import os
 from glob import glob
 
@@ -18,11 +18,11 @@ path_to_imgs = args.path_to_imgs
 path_to_output = args.path_to_output
 
 # Load the YOLOv5 and YOLOv8 models from their weights
-model5 = ultralytics.YOLO(v5_path)
-model8 = ultralytics.YOLO(v8_path)
+model5 = YOLO(v5_path)
+model8 = YOLO(v8_path)
 
 # Create an ensemble of the two models
-model = ultralytics.Ensemble([model5, model8])
+model = Ensemble([model5, model8])
 
 if not os.path.exists(path_to_output):
     os.makedirs(path_to_output)
