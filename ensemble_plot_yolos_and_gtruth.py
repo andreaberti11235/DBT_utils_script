@@ -56,7 +56,7 @@ def draw_box(
 
 def main():
     parser = argparse.ArgumentParser(description='Plot the resuts of yolov5 and yolov8, together with the ground truth.')
-    parser.add_argument('ensemble_dir', help='Absolute path of the folder containing the images resulting from the ensemble inference')
+    parser.add_argument('ensemble_dir', help='Absolute path of the folder containing the labels resulting from the ensemble inference')
     parser.add_argument('yolov5_dir', help='Absolute path of the folder containing the images resulting from yolov5 inference')
     parser.add_argument('yolov8_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference')
     parser.add_argument('gt_dir', help='Absolute path to folder of input images (parent of images/ and labels/)')
@@ -68,6 +68,8 @@ def main():
     yolov8_dir = args.yolov8_dir
     gt_dir = args.gt_dir
     out_dir = args.out_dir
+
+    offset = 3
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -85,10 +87,12 @@ def main():
         label = os.path.join(path_to_labels, f'{name}.txt')
         img_pil = Image.open(img)
         img_npy = np.array(img_pil)
+        ensemble_npy = np.copy(img_npy)
         img_width = img_npy.shape[1]
         img_height = img_npy.shape[0]
 
-        ensemble_img = os.path.join(ensemble_dir, f'{name}.png')
+        ensemble_label = os.path.join(ensemble_dir, f'{name}.txt')
+
         yolov5_img = os.path.join(yolov5_dir, f'{name}.png')
         yolov8_img = os.path.join(yolov8_dir, f'{name}.png')
 
@@ -101,20 +105,43 @@ def main():
         #fill = (153, 153, 255)
         #font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
 
-        ensemble_pil = Image.open(ensemble_img)
-        # ensemble_pil = ImageOps.grayscale(ensemble_pil)
-        # ensemble_npy = np.array(ensemble_pil)
+        ensemble_df = pd.read_csv(ensemble_label, sep=' ', header=None)
+        for idx in ensemble_df.index:
+            # scorro su tutte le bbox e prendo i vari valori
+            x_center = df.iloc[idx][1]
+            y_center = df.iloc[idx][2]
+            width = df.iloc[idx][3]
+            height = df.iloc[idx][4]
+
+            # modifico l'immagine 'disegnandoci' dentro le bbox
+            ensemble_npy = draw_box(ensemble_npy, x_center=x_center, y_center=y_center, 
+                     width=width, height=height, 
+                     img_width=img_width, img_height=img_height, color=255)
+
+
+        ensemble_pil = Image.fromarray(ensemble_npy)
+        ensemble_rgb = ensemble_pil.convert('RGB')
 
         # Create an ImageDraw object
-        draw_ensemble = ImageDraw.Draw(ensemble_pil)
+        draw_ensemble = ImageDraw.Draw(ensemble_rgb)
         # Draw the text on the image at a given position and color
         draw_ensemble.text((500, 100), "Yolo ensemble", font=font, fill=fill)
         draw_ensemble.text((500, 250), f"{name}", font=font2, fill=fill)
 
+        # add the text with the conf value for each detection
+        for idx in ensemble_df.index:
+            x_center = df.iloc[idx][1]
+            y_center = df.iloc[idx][2]
+            width = df.iloc[idx][3]
+            height = df.iloc[idx][4]
+            confidence = df.iloc[idx][5]
+
+            x_position = x_center - width/2
+            y_position = y_center - height/2
+
+            draw_ensemble.text((x_position - offset, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
 
         yolov5_pil = Image.open(yolov5_img)
-        # yolov5_pil = ImageOps.grayscale(yolov5_pil)
-        # yolov5_npy = np.array(yolov5_pil)
 
         # Create an ImageDraw object
         draw_v5 = ImageDraw.Draw(yolov5_pil)
@@ -124,8 +151,6 @@ def main():
 
 
         yolov8_pil = Image.open(yolov8_img)
-        # yolov8_pil = ImageOps.grayscale(yolov8_pil)
-        # yolov8_npy = np.array(yolov8_pil)
 
         # Create an ImageDraw object
         draw_v8 = ImageDraw.Draw(yolov8_pil)
@@ -147,19 +172,6 @@ def main():
                      width=width, height=height, 
                      img_width=img_width, img_height=img_height, color=255)
         
-        # le dimensioni delle immagini coincidono? reshape a 1280? i canali sono 3 per tutte le immagini?
-            # cmap='gray'? Altrimenti vanno aperte in gray con PIL
-
-        # fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-        # fig.suptitle(f'{name}')
-        # ax1.imshow(yolov5_npy, cmap='gray')
-        # ax1.set_title('Yolo v5')
-        # ax2.imshow(img_npy, cmap='gray')
-        # ax2.set_title('Ground truth')
-        # # ax3.imshow(yolov8_npy, cmap='gray')
-        # ax3.imshow(yolov8_npy)
-        # ax3.set_title('Yolo v8')
-        
         img_gt_pil = Image.fromarray(img_npy)
         img_gt_rgb = img_gt_pil.convert('RGB')
 
@@ -167,11 +179,6 @@ def main():
         draw_gt = ImageDraw.Draw(img_gt_rgb)
         # Draw the text on the image at a given position and color
         draw_gt.text((500, 100), "Ground truth", font=font, fill=fill)
-
-
-        # img_modified_pil.show()
-        # yolov5_pil.show()
-        # yolov8_pil.show()
 
         # Get the width and height of each image
         width_gt, height_gt = img_gt_rgb.size
@@ -190,15 +197,10 @@ def main():
         new_image.paste(yolov8_pil, (width_v5 + width_gt, 0))
         new_image.paste(ensemble_pil, (width_v5 + width_gt + width_v8, 0))
 
-
         # salvataggio immagini
-        # out_name = os.path.join(out_dir, f'{name}.pdf')
-        # plt.savefig(out_name, bbox_inches='tight')
-
         out_name = os.path.join(out_dir, f'{name}.png')
         new_image.save(out_name)
         # plt.savefig(out_name, dpi=500, bbox_inches='tight')
-
 
 
 
