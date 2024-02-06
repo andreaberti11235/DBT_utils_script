@@ -139,7 +139,7 @@ def main():
             x_position = x_center - width/2
             y_position = y_center - height/2
 
-            draw_ensemble.text((x_position - offset, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+            draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
 
         yolov5_pil = Image.open(yolov5_img)
 
