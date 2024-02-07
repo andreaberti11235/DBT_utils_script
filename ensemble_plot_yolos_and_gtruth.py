@@ -78,13 +78,13 @@ def main():
     path_to_labels = os.path.join(gt_dir, 'labels')
 
     imgs_list = glob.glob(os.path.join(path_to_imgs, '*'))
-    print('sto per iniziare il primo ciclo')
 
     for img in imgs_list:
         # scorro su tutte le immagini, per ciascuna prendo la GT e la plotto insieme a yv5 e yv8
-        print('iniziato il primo ciclo')
         name = os.path.basename(img)
         name = name.split('.')[0]
+        print(f'image {name}')
+
 
         label = os.path.join(path_to_labels, f'{name}.txt')
         img_pil = Image.open(img)
@@ -205,7 +205,6 @@ def main():
         # salvataggio immagini
         out_name = os.path.join(out_dir, f'{name}.png')
         new_image.save(out_name)
-        print('finito')
         # plt.savefig(out_name, dpi=500, bbox_inches='tight')
 
 
