@@ -200,6 +200,7 @@ def main():
         # salvataggio immagini
         out_name = os.path.join(out_dir, f'{name}.png')
         new_image.save(out_name)
+        print('finito')
         # plt.savefig(out_name, dpi=500, bbox_inches='tight')
 
 
