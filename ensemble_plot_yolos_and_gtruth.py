@@ -77,7 +77,7 @@ def main():
     path_to_imgs = os.path.join(gt_dir, 'images')
     path_to_labels = os.path.join(gt_dir, 'labels')
 
-    imgs_list = glob.glob(os.path.join(path_to_imgs, '*'))ù
+    imgs_list = glob.glob(os.path.join(path_to_imgs, '*'))
     print('sto per iniziare il primo ciclo')
 
     for img in imgs_list:
