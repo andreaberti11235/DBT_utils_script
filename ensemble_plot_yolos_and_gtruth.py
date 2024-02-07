@@ -135,11 +135,11 @@ def main():
 
         # add the text with the conf value for each detection
         for idx in ensemble_df.index:
-            x_center = df.iloc[idx][1]
-            y_center = df.iloc[idx][2]
-            width = df.iloc[idx][3]
-            height = df.iloc[idx][4]
-            confidence = df.iloc[idx][5]
+            x_center = ensemble_df.iloc[idx][1]
+            y_center = ensemble_df.iloc[idx][2]
+            width = ensemble_df.iloc[idx][3]
+            height = ensemble_df.iloc[idx][4]
+            confidence = ensemble_df.iloc[idx][5]
 
             x_position = x_center - width/2
             y_position = y_center - height/2
