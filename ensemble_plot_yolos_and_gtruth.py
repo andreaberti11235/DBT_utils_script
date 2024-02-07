@@ -113,10 +113,10 @@ def main():
         ensemble_df = pd.read_csv(ensemble_label, sep=' ', header=None)
         for idx in ensemble_df.index:
             # scorro su tutte le bbox e prendo i vari valori
-            x_center = int(ensemble_df.iloc[idx][1])
-            y_center = int(ensemble_df.iloc[idx][2])
-            width = int(ensemble_df.iloc[idx][3])
-            height = int(ensemble_df.iloc[idx][4])
+            x_center = float(ensemble_df.iloc[idx][1])
+            y_center = float(ensemble_df.iloc[idx][2])
+            width = float(ensemble_df.iloc[idx][3])
+            height = float(ensemble_df.iloc[idx][4])
 
             # modifico l'immagine 'disegnandoci' dentro le bbox
             ensemble_npy = draw_box(ensemble_npy, x_center=x_center, y_center=y_center, 
