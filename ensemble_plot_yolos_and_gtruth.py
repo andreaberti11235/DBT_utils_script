@@ -100,9 +100,12 @@ def main():
 
         # Specify the font and size
         #font = ImageFont.truetype("Supplemental/Futura.ttc", 128)
-        font = ImageFont.truetype("URWGothic-Book.otf", 128)
+        font = ImageFont.truetype("DejaVuSans.ttf", 128)
+        # font = ImageFont.truetype("URWGothic-Book.otf", 128)
         fill = (153, 153, 255)
-        font2 = ImageFont.truetype("URWBookman-Light.otf", 64)
+        # font2 = ImageFont.truetype("URWBookman-Light.otf", 64)
+        font2 = ImageFont.truetype("DejaVuSans-ExtraLight.ttf", 64)
+
 
         #fill = (153, 153, 255)
         #font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
