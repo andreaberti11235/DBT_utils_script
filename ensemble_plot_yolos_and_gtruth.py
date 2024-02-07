@@ -77,10 +77,12 @@ def main():
     path_to_imgs = os.path.join(gt_dir, 'images')
     path_to_labels = os.path.join(gt_dir, 'labels')
 
-    imgs_list = glob.glob(os.path.join(path_to_imgs, '*'))
+    imgs_list = glob.glob(os.path.join(path_to_imgs, '*'))ù
+    print('sto per iniziare il primo ciclo')
 
     for img in imgs_list:
         # scorro su tutte le immagini, per ciascuna prendo la GT e la plotto insieme a yv5 e yv8
+        print('iniziato il primo ciclo')
         name = os.path.basename(img)
         name = name.split('.')[0]
 
