@@ -105,6 +105,8 @@ def main():
         fill = (153, 153, 255)
         # font2 = ImageFont.truetype("URWBookman-Light.otf", 64)
         font2 = ImageFont.truetype("DejaVuSans-ExtraLight.ttf", 64)
+        font3 = ImageFont.truetype("DejaVuSans-ExtraLight.ttf", 200)
+
 
 
         #fill = (153, 153, 255)
@@ -147,7 +149,10 @@ def main():
                 y_position = y_center - height/2
 
                 # non sto stampando le conf, perché?
-                draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+                # draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+                draw_ensemble.text((x_position, y_position - offset), f"CIAO", font=font3, fill=fill)
+
+        draw_ensemble.text((600, 400), f"CIAOCIAO", font=font3, fill=fill)
 
         yolov5_pil = Image.open(yolov5_img)
 
