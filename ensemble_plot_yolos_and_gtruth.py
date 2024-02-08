@@ -173,25 +173,25 @@ def main():
 
 
         df = pd.read_csv(label, sep=' ', header=None)
-        for idx in df.index:
-            # scorro su tutte le bbox e prendo i vari valori
-            x_center = df.iloc[idx][1]
-            y_center = df.iloc[idx][2]
-            width = df.iloc[idx][3]
-            height = df.iloc[idx][4]
+        # for idx in df.index:
+        #     # scorro su tutte le bbox e prendo i vari valori
+        #     x_center = df.iloc[idx][1]
+        #     y_center = df.iloc[idx][2]
+        #     width = df.iloc[idx][3]
+        #     height = df.iloc[idx][4]
 
-            # modifico l'immagine 'disegnandoci' dentro le bbox
-            img_npy = draw_box(img_npy, x_center=x_center, y_center=y_center, 
-                     width=width, height=height, 
-                     img_width=img_width, img_height=img_height, color=255)
+        #     # modifico l'immagine 'disegnandoci' dentro le bbox
+        #     img_npy = draw_box(img_npy, x_center=x_center, y_center=y_center, 
+        #              width=width, height=height, 
+        #              img_width=img_width, img_height=img_height, color=255)
         
         img_gt_pil = Image.fromarray(img_npy)
         img_gt_rgb = img_gt_pil.convert('RGB')
 
         # Create an ImageDraw object
-        draw_gt = ImageDraw.Draw(img_gt_rgb)
-        # Draw the text on the image at a given position and color
-        draw_gt.text((500, 100), "Ground truth", font=font, fill=fill)
+        # draw_gt = ImageDraw.Draw(img_gt_rgb)
+        # # Draw the text on the image at a given position and color
+        # draw_gt.text((500, 100), "Ground truth", font=font, fill=fill)
 
         # Get the width and height of each image
         width_gt, height_gt = img_gt_rgb.size
