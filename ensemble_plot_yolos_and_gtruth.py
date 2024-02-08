@@ -91,7 +91,7 @@ def main():
         label = os.path.join(path_to_labels, f'{name}.txt')
         img_pil = Image.open(img)
         img_npy = np.array(img_pil)
-        img_ensemble_pil = Image.open(os.path.join(img_val_dir, name))
+        img_ensemble_pil = Image.open(os.path.join(img_val_dir, f'name'.png))
         ensemble_npy = np.array(img_ensemble_pil)
         img_width = img_npy.shape[1]
         img_height = img_npy.shape[0]
