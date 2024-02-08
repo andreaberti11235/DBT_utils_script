@@ -111,7 +111,7 @@ def main():
 
         #fill = (153, 153, 255)
         #font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
-        if os.stat("file").st_size != 0:
+        if os.stat(ensemble_label).st_size != 0:
             ensemble_df = pd.read_csv(ensemble_label, sep=' ', header=None)
 
             for idx in ensemble_df.index:
@@ -137,7 +137,7 @@ def main():
         draw_ensemble.text((500, 250), f"{name}", font=font2, fill=fill)
 
         # add the text with the conf value for each detection
-        if os.stat("file").st_size != 0:
+        if os.stat(ensemble_label).st_size != 0:
             for idx in ensemble_df.index:
                 x_center = ensemble_df.iloc[idx][1]
                 y_center = ensemble_df.iloc[idx][2]
