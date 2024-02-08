@@ -57,6 +57,7 @@ def draw_box(
 def main():
     parser = argparse.ArgumentParser(description='Plot the resuts of yolov5 and yolov8, together with the ground truth.')
     parser.add_argument('ensemble_dir', help='Absolute path of the folder containing the labels resulting from the ensemble inference')
+    parser.add_argument('img_val_dir', help='Absolute path of the folder containing the validation images')
     parser.add_argument('yolov5_dir', help='Absolute path of the folder containing the images resulting from yolov5 inference')
     parser.add_argument('yolov8_dir', help='Absolute path of the folder containing the images resulting from yolov8 inference')
     parser.add_argument('gt_dir', help='Absolute path to folder of input images (parent of images/ and labels/)')
@@ -64,6 +65,7 @@ def main():
     args = parser.parse_args()
 
     ensemble_dir = args.ensemble_dir
+    img_val_dir = args.img_val_dir
     yolov5_dir = args.yolov5_dir
     yolov8_dir = args.yolov8_dir
     gt_dir = args.gt_dir
@@ -89,7 +91,8 @@ def main():
         label = os.path.join(path_to_labels, f'{name}.txt')
         img_pil = Image.open(img)
         img_npy = np.array(img_pil)
-        ensemble_npy = np.copy(img_npy)
+        img_ensemble_pil = Image.open(os.path.join(img_val_dir, name))
+        ensemble_npy = np.array(img_ensemble_pil)
         img_width = img_npy.shape[1]
         img_height = img_npy.shape[0]
 
