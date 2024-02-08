@@ -109,19 +109,20 @@ def main():
 
         #fill = (153, 153, 255)
         #font2 = ImageFont.truetype("Supplemental/Futura.ttc", 64)
+        if os.path.isfile(ensemble_label):
+            ensemble_df = pd.read_csv(ensemble_label, sep=' ', header=None)
 
-        ensemble_df = pd.read_csv(ensemble_label, sep=' ', header=None)
-        for idx in ensemble_df.index:
-            # scorro su tutte le bbox e prendo i vari valori
-            x_center = ensemble_df.iloc[idx][1]
-            y_center = ensemble_df.iloc[idx][2]
-            width = ensemble_df.iloc[idx][3]
-            height = ensemble_df.iloc[idx][4]
+            for idx in ensemble_df.index:
+                # scorro su tutte le bbox e prendo i vari valori
+                x_center = ensemble_df.iloc[idx][1]
+                y_center = ensemble_df.iloc[idx][2]
+                width = ensemble_df.iloc[idx][3]
+                height = ensemble_df.iloc[idx][4]
 
-            # modifico l'immagine 'disegnandoci' dentro le bbox
-            ensemble_npy = draw_box(ensemble_npy, x_center=x_center, y_center=y_center, 
-                     width=width, height=height, 
-                     img_width=img_width, img_height=img_height, color=255)
+                # modifico l'immagine 'disegnandoci' dentro le bbox
+                ensemble_npy = draw_box(ensemble_npy, x_center=x_center, y_center=y_center, 
+                        width=width, height=height, 
+                        img_width=img_width, img_height=img_height, color=255)
 
 
         ensemble_pil = Image.fromarray(ensemble_npy)
@@ -134,17 +135,19 @@ def main():
         draw_ensemble.text((500, 250), f"{name}", font=font2, fill=fill)
 
         # add the text with the conf value for each detection
-        for idx in ensemble_df.index:
-            x_center = ensemble_df.iloc[idx][1]
-            y_center = ensemble_df.iloc[idx][2]
-            width = ensemble_df.iloc[idx][3]
-            height = ensemble_df.iloc[idx][4]
-            confidence = ensemble_df.iloc[idx][5]
+        if os.path.isfile(ensemble_label):
+            for idx in ensemble_df.index:
+                x_center = ensemble_df.iloc[idx][1]
+                y_center = ensemble_df.iloc[idx][2]
+                width = ensemble_df.iloc[idx][3]
+                height = ensemble_df.iloc[idx][4]
+                confidence = ensemble_df.iloc[idx][5]
 
-            x_position = x_center - width/2
-            y_position = y_center - height/2
+                x_position = x_center - width/2
+                y_position = y_center - height/2
 
-            draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+                # non sto stampando le conf, perché?
+                draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
 
         yolov5_pil = Image.open(yolov5_img)
 
