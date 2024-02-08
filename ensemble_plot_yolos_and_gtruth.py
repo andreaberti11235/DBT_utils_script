@@ -136,23 +136,23 @@ def main():
         draw_ensemble.text((500, 100), "Yolo ensemble", font=font, fill=fill)
         draw_ensemble.text((500, 250), f"{name}", font=font2, fill=fill)
 
-        # add the text with the conf value for each detection
-        if os.stat(ensemble_label).st_size != 0:
-            for idx in ensemble_df.index:
-                x_center = ensemble_df.iloc[idx][1]
-                y_center = ensemble_df.iloc[idx][2]
-                width = ensemble_df.iloc[idx][3]
-                height = ensemble_df.iloc[idx][4]
-                confidence = ensemble_df.iloc[idx][5]
+        # # add the text with the conf value for each detection
+        # if os.stat(ensemble_label).st_size != 0:
+        #     for idx in ensemble_df.index:
+        #         x_center = ensemble_df.iloc[idx][1]
+        #         y_center = ensemble_df.iloc[idx][2]
+        #         width = ensemble_df.iloc[idx][3]
+        #         height = ensemble_df.iloc[idx][4]
+        #         confidence = ensemble_df.iloc[idx][5]
 
-                x_position = x_center - width/2
-                y_position = y_center - height/2
+        #         x_position = x_center - width/2
+        #         y_position = y_center - height/2
 
-                # non sto stampando le conf, perché?
-                # draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
-                draw_ensemble.text((x_position, y_position - offset), f"CIAO", font=font3, fill=fill)
+        #         # non sto stampando le conf, perché?
+        #         # draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+        #         draw_ensemble.text((x_position, y_position - offset), f"CIAO", font=font3, fill=fill)
 
-        draw_ensemble.text((600, 400), f"CIAOCIAO", font=font3, fill=fill)
+        # draw_ensemble.text((600, 400), f"CIAOCIAO", font=font3, fill=fill)
 
         yolov5_pil = Image.open(yolov5_img)
 
