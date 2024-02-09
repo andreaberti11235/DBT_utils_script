@@ -103,10 +103,10 @@ def main():
         font = ImageFont.truetype("DejaVuSans.ttf", 128)
         # font = ImageFont.truetype("URWGothic-Book.otf", 128)
         fill = (153, 153, 255)
+        fill2 = (255, 0, 0)
         # font2 = ImageFont.truetype("URWBookman-Light.otf", 64)
         font2 = ImageFont.truetype("DejaVuSans-ExtraLight.ttf", 64)
-        font3 = ImageFont.truetype("DejaVuSans-ExtraLight.ttf", 200)
-
+        font3 = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
 
 
         #fill = (153, 153, 255)
@@ -134,8 +134,7 @@ def main():
         draw_ensemble = ImageDraw.Draw(ensemble_rgb)
         # Draw the text on the image at a given position and color
         draw_ensemble.text((500, 100), "Yolo ensemble", font=font, fill=fill, image=ensemble_rgb)
-        draw_ensemble.text((500, 250), f"{name}", font=font2, fill=fill)
-
+        
         # add the text with the conf value for each detection
         if os.stat(ensemble_label).st_size != 0:
             for idx in ensemble_df.index:
@@ -153,7 +152,7 @@ def main():
                 # y_position = y_center - height/2
 
                 # non sto stampando le conf, perché?
-                draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
+                draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font3, fill=fill2)
 
         # draw_ensemble.text((600, 400), f"CIAOCIAO", font=font3, fill=fill)
 
