@@ -145,8 +145,12 @@ def main():
                 height = ensemble_df.iloc[idx][4]
                 confidence = ensemble_df.iloc[idx][5]
 
-                x_position = x_center - width/2
-                y_position = y_center - height/2
+                
+                x_position = int(x_center * img_width - (width * img_width) // 2)
+                y_position = int(y_center * img_height - (height * img_height) // 2)
+
+                # x_position = x_center - width/2
+                # y_position = y_center - height/2
 
                 # non sto stampando le conf, perché?
                 draw_ensemble.text((x_position, y_position - offset), f"{np.round(confidence, decimals=2)}", font=font2, fill=fill)
