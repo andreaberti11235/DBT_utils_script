@@ -1,5 +1,6 @@
 import os
 import argparse
+import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
@@ -75,8 +76,19 @@ def _get_image_laterality(pixel_array: np.ndarray) -> str:
     right_edge = np.sum(pixel_array[:, :, -1])  # sum of right edge pixels
     return "R" if left_edge < right_edge else "L"
 
-def crop_mas_and_create_pil(npy_img, slice, x, y, width, height):
-    mass_cropped = crop_mass(image=npy_img[slice, :, :], x=x, y=y, width=width, height=height)
+def crop_mas_and_create_pil(npy_img, slice, x, y, width, height, apply_clahe):
+    mass_slice = npy_img[slice, :, :]
+    mass_slice = ((mass_slice - np.amin(mass_slice))/(np.amax(mass_slice) - np.amin(mass_slice)))*255
+    mass_slice = mass_slice.astype(np.uint8)
+
+    if apply_clahe:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        clahe_img = clahe.apply(mass_slice)
+        clahe_img = ((clahe_img - np.amin(clahe_img))/(np.amax(clahe_img) - np.amin(clahe_img)))*255
+        clahe_img = clahe_img.astype(np.uint8)
+        mass_slice = clahe_img
+
+    mass_cropped = crop_mass(image=mass_slice, x=x, y=y, width=width, height=height)
     mass_cropped = ((mass_cropped - np.amin(mass_cropped))/(np.amax(mass_cropped) - np.amin(mass_cropped)))*255
     mass_cropped = mass_cropped.astype(np.uint8)
     pil_mass = Image.fromarray(mass_cropped)
@@ -113,12 +125,15 @@ if __name__ == "__main__":
     parser.add_argument('dest_dir', help='Destination directory of images (absolute path)')
     parser.add_argument('path_to_imgs', help='Absolute path to folder of input images (parent of benign/cancer)')
     parser.add_argument('-n', '--num_slices', type=int, default=3, help='Number (for each side) of additional slices next to the central slice qith lesion (default 3)')
+    parser.add_argument('-c', '--clahe', help='Apply CLAHE preprocessing to images', default=False, action='store_true')
     args = parser.parse_args()
 
     csv_path = args.csv_box_file
     dest_dir = args.dest_dir
     path_to_imgs = args.path_to_imgs
     num_slices_each_side = args.num_slices
+    apply_clahe = args.clahe
+
 
     df_box = pd.read_csv(csv_path)
 
@@ -190,7 +205,7 @@ if __name__ == "__main__":
             if x + max_dim > npy_img.shape[2]:
                 x = npy_img.shape[2] - max_dim
 
-        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim)
+        pil_mass = crop_mas_and_create_pil(npy_img, slice, x, y, max_dim, max_dim, apply_clahe=apply_clahe)
         out_file_name = img_name.split(sep='.')[0]
         out_file_name = f'{out_file_name}_mass{mass_count}.png'
         
@@ -215,7 +230,7 @@ if __name__ == "__main__":
         selected_slices = find_selected_slices(num_slices_each_side, slice, volume_slices, label=label)
 
         for i, selected_slice in enumerate(selected_slices):
-            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim)
+            pil_mass_augm = crop_mas_and_create_pil(npy_img, selected_slice, x, y, max_dim, max_dim, apply_clahe=apply_clahe)
             base_out_name = out_file_name.split(sep='.')[0]
             out_file_name_augm = f'{base_out_name}_slice{i}.png'
             out_slice_augm_path = os.path.join(out_dir_path_augm, out_file_name_augm)
